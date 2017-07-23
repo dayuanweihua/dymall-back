@@ -82,5 +82,6 @@
 	</aop:config> -->
 	
 	<import resource="spring-data-redis.xml"/>
+	<import resource="spring-shiro.xml"/>
 
 </beans>

@@ -1,8 +1,12 @@
 package com.dayuan.controller;
 
 import javax.annotation.Resource;
+
 import javax.servlet.http.HttpSession;
 
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.authc.UsernamePasswordToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -127,8 +131,50 @@ public class UserInfoController {
 			return resultVo;
 		}
 	}
-
 	
+	/*shiro test start*/
+	//  /user/login.shtml
+	@RequestMapping(value = "/login.shtml", method = { RequestMethod.GET, RequestMethod.POST })
+	@ResponseBody
+	public ResultVo login(HttpSession session, String loginName, String password) {
+		ResultVo resultVo = null;
+		try {
+
+			if (loginName == null || password == null) {
+				resultVo = new ResultVo();
+				resultVo.setCode(ConstantCode.PARAM_EMPTY.getCode());
+				resultVo.setMsg("请求参数不正确");
+				return resultVo;
+			}
+
+			// shiro start
+			// 登录后存放进shiro token
+			UsernamePasswordToken token = new UsernamePasswordToken(loginName, password);
+			Subject subject = SecurityUtils.getSubject();
+			subject.login(token);
+			// shiro end
+
+			// 登录成功
+			UserInfo userInfo = userInfoService.selectUserInfoByParam(new UserInfo(token.getUsername()));
+			// 登录成功，存seesion
+			session.setAttribute("userInfo", userInfo);
+
+			resultVo = new ResultVo();
+			resultVo.setCode(ConstantCode.SUCCESS.getCode());
+			resultVo.setData(userInfo);
+			resultVo.setMsg("登录成功！");
+
+			return resultVo;
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultVo = new ResultVo();
+			resultVo.setCode(ConstantCode.FAIL.getCode());
+			resultVo.setMsg("网络不稳定，请稍后再试");
+			logger.error("登录失败：" + e.getMessage());
+			return resultVo;
+		}
+	}
+	/*shiro test end*/
 
 	@RequestMapping(value = "/registerByEmail.shtml", method = { RequestMethod.GET, RequestMethod.POST })
 	@ResponseBody

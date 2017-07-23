@@ -33,6 +33,7 @@ public class CartController {
 	@Resource
 	private GoodsService goodsService;
 
+//	@RequiresRoles("admin")升级此接口的权限为admin
 	@RequestMapping(value = "/checkCartInfos.shtml", method = { RequestMethod.GET, RequestMethod.POST })
 	@ResponseBody
 	/**

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<description>Shiro Configuration</description>
+
+	<!-- Shiro权限过滤过滤器定义，需要对哪些资源进行过滤 -->
+	<bean name="shiroFilterChainDefinitions" class="java.lang.String">
+		<constructor-arg>
+			<value>
+				login.jsp** = anon<!--登录页为匿名权限，不需要证明  -->
+				shiroLogin.shtml** = roles[admin]<!--需要权限为admin  -->
+			</value>
+		</constructor-arg>
+	</bean>
+
+	<!-- 安全认证过滤器 ，哪些资源需要被过滤-->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<!--应用Shiro安全管理配置  -->
+		<property name="securityManager" ref="securityManager" />
+		<!-- 定义登录url -->
+		<property name="loginUrl" value="login.html" />
+		<!--定义未授权页面  -->
+		<property name="unauthorizedUrl" value="404.html" />
+		<!--访问资源成功后的url  -->
+		<property name="successUrl" value="/WEB-INF/jsp/index.jsp" />
+		<property name="filters">
+			<map><!--引入DayuanAuthorizationFilter判断用户是否有该权限  -->
+				<entry key="dyrole" value-ref="dayuanAuthorizationFilter" />
+			</map>
+		</property>
+		<property name="filterChainDefinitions">
+			<ref bean="shiroFilterChainDefinitions" />
+		</property>
+	</bean>
+
+	<!--shiro自定义缓存，  -->
+	<bean id="cacheManager" class="org.apache.shiro.cache.MemoryConstrainedCacheManager" />
+
+	<!-- 定义Shiro安全管理配置 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="myShiroRealm" />
+		<property name="cacheManager" ref="cacheManager" />
+	</bean>
+
+	<!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+	<bean id="myShiroRealm" class="com.dayuan.realm.MyShiroRealm">
+		<property name="cachingEnabled" value="true"></property>
+	</bean>
+
+</beans>
